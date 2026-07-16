@@ -6,19 +6,25 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { RawsortConfig, SortResult } from "./types.js";
-import { GeminiClient } from "./gemini.js";
+import { GeminiClient, TextModel } from "./gemini.js";
+import { Segmenter } from "./segmenter.js";
+import { Classifier } from "./classifier.js";
+import { Reassembler } from "./reassembler.js";
 import { ContentValidator } from "./validator.js";
 
 export class Sorter {
   private config: RawsortConfig;
-  private geminiClient: GeminiClient;
+  private classifier: Classifier;
 
-  constructor(config: RawsortConfig) {
+  /**
+   * `model` is injectable so the pipeline can be tested with a fake model.
+   * In production it defaults to the Gemini client built from the config key.
+   */
+  constructor(config: RawsortConfig, model?: TextModel) {
     this.config = config;
-    this.geminiClient = new GeminiClient(config.geminiApiKey);
+    this.classifier = new Classifier(model ?? new GeminiClient(config.geminiApiKey));
   }
 
-  
   async sort(): Promise<SortResult> {
     try {
       // Expand tilde in path
@@ -39,13 +45,18 @@ export class Sorter {
         };
       }
 
-      // Call Gemini to sort
-      const sortedContent = await this.geminiClient.sortContent(
-        content,
+      // Segment into units, classify each (LLM only returns labels), then
+      // rebuild the document from the original, untouched unit text.
+      const units = Segmenter.segment(content);
+      const labels = await this.classifier.classify(units, this.config.categories);
+      const sortedContent = Reassembler.reassemble(
+        units,
+        labels,
         this.config.categories
       );
 
-      // Validate integrity
+      // Final safety assertion: reassembly is built from originals, so this
+      // should always pass; if it ever fails we refuse to write.
       const validation = ContentValidator.validateIntegrity(
         content,
         sortedContent
