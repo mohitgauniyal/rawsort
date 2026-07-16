@@ -3,6 +3,7 @@
  */
 
 import fs from "fs";
+import os from "os";
 import path from "path";
 import { RawsortConfig } from "./types.js";
 
@@ -15,7 +16,7 @@ const DEFAULT_CATEGORIES = [
   "Reference Notes",
 ];
 
-const CONFIG_PATH = path.join(process.env.HOME || "~", ".rawsort", "config.json");
+const CONFIG_PATH = path.join(os.homedir(), ".rawsort", "config.json");
 
 export class ConfigManager {
   static getConfigPath(): string {

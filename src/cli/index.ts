@@ -55,6 +55,9 @@ program
             `   Categories found: ${result.categoriesFound.join(", ")}`
           )
         );
+        if (result.backupPath) {
+          console.log(chalk.gray(`   Backup saved: ${result.backupPath}`));
+        }
       } else {
         console.error(chalk.red(`❌ ${result.message}`));
         if (result.error) {

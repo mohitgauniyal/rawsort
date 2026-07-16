@@ -3,11 +3,11 @@
  */
 
 import fs from "fs";
+import os from "os";
 import path from "path";
 import { RawsortConfig, SortResult } from "./types.js";
 import { GeminiClient } from "./gemini.js";
 import { ContentValidator } from "./validator.js";
-import { console } from "inspector/promises";
 
 export class Sorter {
   private config: RawsortConfig;
@@ -45,12 +45,6 @@ export class Sorter {
         this.config.categories
       );
 
-      // Add these lines before: const validation = ContentValidator.validateIntegrity(
-    console.log("Original content length:", content.length);
-    console.log("Sorted content length:", sortedContent.length);
-    console.log("First 200 chars of original:", content.substring(0, 200));
-    console.log("First 200 chars of sorted:", sortedContent.substring(0, 200));
-
       // Validate integrity
       const validation = ContentValidator.validateIntegrity(
         content,
@@ -68,8 +62,10 @@ export class Sorter {
         };
       }
 
-      // Write back if not dry-run
+      // Write back if not dry-run (backing up the original first)
+      let backupPath: string | undefined;
       if (!this.config.dryRun) {
+        backupPath = this.backupFile(filePath, content);
         this.writeFile(filePath, sortedContent);
       }
 
@@ -79,6 +75,7 @@ export class Sorter {
         charCount: originalCharCount,
         categoriesFound: validation.categoriesFound,
         message: `Successfully sorted! Found ${validation.categoriesFound.length} categories.`,
+        backupPath,
       };
     } catch (error) {
       return {
@@ -112,9 +109,26 @@ export class Sorter {
     }
   }
 
+  /**
+   * Writes a timestamped copy of the original content next to the file so a
+   * bad sort can always be reverted. Returns the backup path.
+   */
+  private backupFile(filePath: string, originalContent: string): string {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const backupPath = `${filePath}.${timestamp}.backup`;
+    try {
+      fs.writeFileSync(backupPath, originalContent, "utf-8");
+      return backupPath;
+    } catch (error) {
+      throw new Error(
+        `Cannot write backup file: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    }
+  }
+
   private expandPath(filePath: string): string {
-    if (filePath.startsWith("~")) {
-      return path.join(process.env.HOME || "~", filePath.slice(1));
+    if (filePath === "~" || filePath.startsWith("~/") || filePath.startsWith("~\\")) {
+      return path.join(os.homedir(), filePath.slice(1));
     }
     return path.resolve(filePath);
   }

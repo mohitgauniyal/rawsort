@@ -16,6 +16,8 @@ export interface SortResult {
   categoriesFound: string[];
   message: string;
   error?: string;
+  /** Path to the timestamped backup of the original file, if one was written. */
+  backupPath?: string;
 }
 
 export interface ValidationResult {
