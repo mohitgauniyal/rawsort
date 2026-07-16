@@ -5,14 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-07-16
 
-### Planned for v0.2.0
-- Sanitization mode (optional masking of passwords/API keys before sending to API)
-- Backup before sort (automatic `.backup` files)
-- Diff preview on first run
-- Better error messages
-- Enhanced logging
+### Changed — Architecture pivot: the model never touches your content
+- Reworked the engine so the LLM only assigns a category label to each unit; the
+  output document is reassembled from the **original, untouched** unit text. Content
+  corruption is now **structurally impossible** rather than merely detected.
+- Content is segmented into blank-line-separated **units**; multi-line snippets
+  (code blocks, wrapped quotes) stay together and are never split across categories.
+- Re-sorting an already-sorted file is now **idempotent** (existing `##` headers are
+  treated as structure and regenerated).
+
+### Added
+- **Redaction hint** for secrets: likely credentials/tokens/keys/connection strings
+  are replaced with a typed placeholder (e.g. `[REDACTED credential]`) before the
+  text is shown to the model. The real value never leaves the machine and is written
+  back untouched.
+- **Backup before sort**: the original is copied to a timestamped `.backup` file
+  before any overwrite; the path is shown in the CLI output.
+- New internal modules: `segmenter`, `redactor`, `classifier`, `reassembler`.
+- Injectable model interface (`TextModel`) so the pipeline is fully unit-testable
+  without network access.
+
+### Fixed
+- Replaced the fake 5%-tolerance token check with a real content-line integrity
+  gate that fails closed on any added/removed/altered line.
+- Removed a broken `inspector/promises` import and leftover debug logging.
+- Use `os.homedir()` so tilde and config paths work correctly on Windows.
+- Added an ESLint configuration so `npm run lint` (and CI) works.
 
 ### Planned for v0.3.0
 - Sublime Text plugin integration

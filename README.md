@@ -20,11 +20,12 @@ Every week or two, you manually organize them into categories. **rawsort** autom
 
 ## Why rawsort?
 
-✅ **Content-safe**: Character-level integrity validation ensures not a single character is modified  
-✅ **Constrained categorization**: No wild category creation—only uses your predefined categories  
+✅ **Corruption is impossible by design**: The AI only assigns a *category label* to each block—your output is rebuilt from the original, untouched text. The model never reproduces your content, so it can't alter it.  
+✅ **Constrained categorization**: No wild category creation—only uses your predefined categories (enforced in code, not just the prompt)  
+✅ **Secrets stay local**: Likely credentials/tokens are replaced with a typed placeholder before anything is sent to the API; the real value is written back untouched  
+✅ **Backed up**: The original is copied to a timestamped `.backup` before any overwrite  
 ✅ **Simple**: CLI tool, no complicated setup  
 ✅ **Free**: Uses Google Gemini's free API tier  
-✅ **Local first**: Your file never leaves your control  
 
 ## Installation
 
@@ -149,17 +150,19 @@ Edit your config to use different categories:
 
 ## How It Works
 
-1. **Read**: rawsort reads your scratchpad file
-2. **Classify**: Sends content to Gemini API with instructions to categorize into your predefined categories
-3. **Validate**: Performs character-level integrity check to ensure no content was modified
-4. **Write**: Updates your file with organized, categorized content (if validation passes)
+1. **Segment**: rawsort splits your file into *units* (blank-line-separated blocks). A multi-line snippet stays together as one unit.
+2. **Redact**: Likely secrets (API keys, passwords, tokens, connection strings) are swapped for a typed placeholder like `[REDACTED credential]` *before* anything is sent to the API.
+3. **Classify**: Gemini receives the numbered (redacted) units and your fixed category list, and returns **only** a mapping of `unit → category`. It never sends your content back.
+4. **Reassemble**: rawsort rebuilds the document locally by grouping the **original, untouched** units under their category headers.
+5. **Verify & Write**: A final integrity gate asserts every original unit is present exactly; the original is backed up to a `.backup` file, then the sorted version is written.
 
 ### Safety Guarantees
 
-- **Content Integrity**: Every character from your original file is verified to be present in the sorted version
-- **No Wild Categories**: AI can only use categories you explicitly define
-- **Constraint Prompting**: Gemini is explicitly instructed NOT to modify content, only reorganize it
-- **Undo-Safe**: If something looks wrong, `Ctrl+Z` in your editor reverts changes
+- **Corruption is structurally impossible**: because the model only returns labels and the output is built from your original bytes, there is nothing for the AI to reword, drop, or hallucinate.
+- **No Wild Categories**: a returned category that isn't in your list is coerced to `Reference Notes` in code—the AI cannot invent categories.
+- **Nothing is ever dropped**: a unit the model omits or can't place goes to `Reference Notes`, never disappears.
+- **Secrets stay local**: detected secrets are never transmitted in the clear.
+- **Backed up & undo-safe**: a timestamped `.backup` is written before every overwrite, and `Ctrl+Z` in your editor also reverts changes.
 
 ## Examples
 
@@ -194,9 +197,10 @@ TODO: finish project
 
 ## Roadmap
 
-- **v0.2.0**: Sanitization (optional password/credential masking), backup before sort, diff preview
-- **v0.3.0**: Sublime Text integration (keybind support)
-- **v1.0+**: VSCode extension, web app (rawsort.app), local mode (no API)
+- **v0.2.0** ✅: Classify-and-reassemble engine (corruption impossible by design), secret redaction, backup before sort
+- **v0.3.0**: Smarter segmentation (code fences, structured blocks), batching for very large files, diff preview
+- **v0.4.0**: Local/offline model option (no API), bring-your-own-key surface
+- **v1.0+**: Editor plugins (VSCode, Obsidian), embeddable library API
 
 ## API Limits
 
