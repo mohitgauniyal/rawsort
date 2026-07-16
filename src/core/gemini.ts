@@ -16,9 +16,9 @@ export interface TextModel {
 
 export class GeminiClient implements TextModel {
   private client: GoogleGenerativeAI;
-  // Pin to a concrete, stable model. The "*-latest" alias frequently returns
-  // 503 (overloaded); the pinned flash model is far more reliable.
-  private model = "gemini-2.0-flash";
+  // flash-lite is plenty for a classification task and is the model with free
+  // quota on typical accounts (the full flash model often has limit:0 free tier).
+  private model = "gemini-flash-lite-latest";
 
   constructor(apiKey: string) {
     this.client = new GoogleGenerativeAI(apiKey);
