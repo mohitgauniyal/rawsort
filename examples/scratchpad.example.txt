@@ -1,0 +1,20 @@
+The only way to do great work is to love what you do.
+https://github.com/awesome-js/library
+function greet(name) { return `Hello, ${name}!`; }
+TODO: Fix bug in authentication module
+EXAMPLE_API_KEY=sk_test_PLACEHOLDER_not_a_real_key
+Remember: Consistency beats perfection
+npm install express
+API endpoint: https://api.example.com/v1/users
+username: john@example.com
+password: SecurePass123!
+Learn TypeScript generics
+https://stackoverflow.com/questions/12345
+const fibonacci = (n) => n <= 1 ? n : fibonacci(n-1) + fibonacci(n-2);
+Project deadline: Friday
+"The best time to plant a tree was 20 years ago. The second best time is now."
+Database connection string: postgresql://user:pass@localhost:5432/mydb
+Call meeting at 3 PM
+https://www.youtube.com/watch?v=xyz
+AZURE_SUBSCRIPTION_ID=12345-67890-abcdef
+Review PR #456

@@ -1,0 +1,12 @@
+{
+  "geminiApiKey": "YOUR_GEMINI_API_KEY_HERE",
+  "filePath": "~/scratchpad.txt",
+  "categories": [
+    "Quotes & Inspiration",
+    "Code & Commands",
+    "Links & Resources",
+    "Credentials & Tokens",
+    "Ideas & TODO",
+    "Reference Notes"
+  ]
+}
