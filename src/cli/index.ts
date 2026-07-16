@@ -28,7 +28,7 @@ program
       console.log(chalk.blue.bold("\n📝 rawsort v0.1.0\n"));
 
       // Load config
-      let config = ConfigManager.loadConfig();
+      const config = ConfigManager.loadConfig();
       console.log(chalk.gray(`Config loaded from: ${ConfigManager.getConfigPath()}`));
 
       // Override file path if provided
