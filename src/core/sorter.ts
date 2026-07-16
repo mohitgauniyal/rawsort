@@ -22,7 +22,9 @@ export class Sorter {
    */
   constructor(config: RawsortConfig, model?: TextModel) {
     this.config = config;
-    this.classifier = new Classifier(model ?? new GeminiClient(config.geminiApiKey));
+    this.classifier = new Classifier(
+      model ?? new GeminiClient(config.geminiApiKey, config.model)
+    );
   }
 
   async sort(): Promise<SortResult> {

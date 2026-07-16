@@ -16,7 +16,7 @@ program
   .description(
     "AI-powered tool to organize your scratchpad file with constrained categorization"
   )
-  .version("0.2.0");
+  .version("0.3.0");
 
 program
   .command("sort [filePath]")
@@ -25,7 +25,7 @@ program
   .option("--config <path>", "Path to config file")
   .action(async (filePath: string | undefined, options) => {
     try {
-      console.log(chalk.blue.bold("\n📝 rawsort v0.2.0\n"));
+      console.log(chalk.blue.bold("\n📝 rawsort v0.3.0\n"));
 
       // Load config
       const config = ConfigManager.loadConfig();

@@ -1,6 +1,7 @@
 {
   "geminiApiKey": "YOUR_GEMINI_API_KEY_HERE",
   "filePath": "~/scratchpad.txt",
+  "model": "gemini-flash-lite-latest",
   "categories": [
     "Quotes & Inspiration",
     "Code & Commands",

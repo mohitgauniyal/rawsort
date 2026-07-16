@@ -198,8 +198,8 @@ TODO: finish project
 ## Roadmap
 
 - **v0.2.0** ✅: Classify-and-reassemble engine (corruption impossible by design), secret redaction, backup before sort
-- **v0.3.0**: Smarter segmentation (code fences, structured blocks), batching for very large files, diff preview
-- **v0.4.0**: Local/offline model option (no API), bring-your-own-key surface
+- **v0.3.0** ✅: Smarter segmentation (per-line units, code/fence/indent blocks kept whole), transient-error retry, configurable model
+- **v0.4.0**: Large-file batching, diff preview, local/offline model option
 - **v1.0+**: Editor plugins (VSCode, Obsidian), embeddable library API
 
 ## API Limits

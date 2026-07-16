@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-07-16
+
+### Changed — Smarter segmentation
+- Each non-blank line now starts its own unit by default, so a stack of distinct
+  one-line notes no longer collapses into a single unit (and a single mis-category).
+  Lines are merged into a multi-line unit only when they are genuine continuations:
+  inside a fenced code block, indented, or while an earlier bracket is still open
+  (which also captures a closing `}`/`)`/`]` on its own line). Verified live: content
+  that previously lumped 20 items into one wrong category now sorts each correctly,
+  with integrity preserved.
+
+### Added
+- **Transient-error retry**: model calls now retry 503/429/network failures with
+  exponential backoff before giving up (`retry.ts`), so momentary Gemini overload no
+  longer aborts a sort.
+- **Configurable model**: set `"model"` in `~/.rawsort/config.json` to override the
+  default. Default is now `gemini-flash-lite-latest` (has free-tier quota on typical
+  accounts and is ample for label-only classification).
+
 ## [0.2.0] - 2026-07-16
 
 ### Changed — Architecture pivot: the model never touches your content
