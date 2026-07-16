@@ -7,6 +7,8 @@ export interface RawsortConfig {
   filePath: string;
   categories: string[];
   dryRun?: boolean;
+  /** Optional Gemini model override; defaults to gemini-flash-lite-latest. */
+  model?: string;
 }
 
 export interface SortResult {

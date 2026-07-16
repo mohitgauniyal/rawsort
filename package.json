@@ -1,6 +1,6 @@
 {
   "name": "rawsort",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A lightweight AI-powered tool to organize your scratchpad file with constrained categorization",
   "main": "dist/index.js",
   "bin": {

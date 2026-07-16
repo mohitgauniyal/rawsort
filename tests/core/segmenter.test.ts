@@ -49,4 +49,67 @@ describe("Segmenter", () => {
     expect(units).toHaveLength(1);
     expect(units[0].text).toBe("#todo buy milk");
   });
+
+  // --- v0.3: consecutive lines without blank separators split into units ---
+
+  it("splits consecutive standalone lines (no blank lines) into separate units", () => {
+    const input = [
+      "The only way to do great work is to love what you do.",
+      "https://github.com/awesome-js/library",
+      "TODO: Fix bug in authentication module",
+      "Remember: Consistency beats perfection",
+    ].join("\n");
+    const units = Segmenter.segment(input);
+    expect(units).toHaveLength(4);
+  });
+
+  it("keeps a brace block together even without surrounding blank lines", () => {
+    const input = [
+      "some note above",
+      "function fib(n) {",
+      "  if (n <= 1) return n;",
+      "  return fib(n - 1) + fib(n - 2);",
+      "}",
+      "some note below",
+    ].join("\n");
+    const units = Segmenter.segment(input);
+    expect(units).toHaveLength(3);
+    expect(units[1].text).toBe(
+      "function fib(n) {\n  if (n <= 1) return n;\n  return fib(n - 1) + fib(n - 2);\n}"
+    );
+  });
+
+  it("keeps an indented continuation with its parent line", () => {
+    const input = ["parent line", "   indented child", "   another child", "next top-level"].join(
+      "\n"
+    );
+    const units = Segmenter.segment(input);
+    expect(units).toHaveLength(2);
+    expect(units[0].text).toBe("parent line\n   indented child\n   another child");
+    expect(units[1].text).toBe("next top-level");
+  });
+
+  it("keeps a fenced code block as one unit", () => {
+    const input = [
+      "before",
+      "```js",
+      "const x = 1;",
+      "",
+      "const y = 2;",
+      "```",
+      "after",
+    ].join("\n");
+    const units = Segmenter.segment(input);
+    expect(units).toHaveLength(3);
+    expect(units[1].text).toBe("```js\nconst x = 1;\n\nconst y = 2;\n```");
+  });
+
+  it("balanced brackets on one line do not trigger a merge", () => {
+    const input = [
+      "const f = (n) => n <= 1 ? n : f(n-1) + f(n-2);",
+      "another separate note",
+    ].join("\n");
+    const units = Segmenter.segment(input);
+    expect(units).toHaveLength(2);
+  });
 });
