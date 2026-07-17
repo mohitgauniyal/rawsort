@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-07-17
+
+### Added — Verifiable audit proof + embeddable SDK
+- **Verifiable integrity proof** (`proof.ts`): every run can emit a portable
+  `AuditProof` (sha256 per-unit hashes, input/output digests, per-unit category,
+  taxonomy, model). Given the original input, the output, and the proof, **anyone can
+  independently confirm the source content was never altered** — no trust in rawsort
+  required. `Proof.verify()` recomputes every hash and detects any tampering.
+- **Embeddable SDK** (`src/index.ts`): `classifyText(content, { categories, ... })`
+  returns the reorganized text plus the proof, in memory with no file I/O; `verifyProof()`
+  independently checks a proof. Inject a custom `textModel` (e.g. a local model). Package
+  now ships `types`/`exports` for library use.
+- **CLI `--proof <path>`**: writes the audit proof as a JSON sidecar alongside a sort.
+
+### Changed
+- Repositioned toward "verifiable AI text classification" (see README). The scratchpad
+  CLI remains the reference implementation of the engine.
+
 ## [0.3.0] - 2026-07-16
 
 ### Changed — Smarter segmentation

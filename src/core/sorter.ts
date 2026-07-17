@@ -5,12 +5,21 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { RawsortConfig, SortResult } from "./types.js";
+import { AuditProof, RawsortConfig, SortResult } from "./types.js";
 import { GeminiClient, TextModel } from "./gemini.js";
 import { Segmenter } from "./segmenter.js";
 import { Classifier } from "./classifier.js";
 import { Reassembler } from "./reassembler.js";
 import { ContentValidator } from "./validator.js";
+import { Proof } from "./proof.js";
+
+/** Result of classifying a string in-memory (the SDK primitive, no file I/O). */
+export interface ClassifyResult {
+  sorted: string;
+  categoriesFound: string[];
+  integrityValid: boolean;
+  proof: AuditProof;
+}
 
 export class Sorter {
   private config: RawsortConfig;
@@ -25,6 +34,43 @@ export class Sorter {
     this.classifier = new Classifier(
       model ?? new GeminiClient(config.geminiApiKey, config.model)
     );
+  }
+
+  /**
+   * The SDK primitive: classify a string in memory and return the reorganized
+   * text plus a verifiable audit proof. No file I/O — safe to embed anywhere.
+   * Throws if the integrity gate fails (which should never happen, since the
+   * output is reassembled from originals).
+   */
+  async classifyText(content: string): Promise<ClassifyResult> {
+    // Segment into units, classify each (LLM only returns labels), then
+    // rebuild the document from the original, untouched unit text.
+    const units = Segmenter.segment(content);
+    const labels = await this.classifier.classify(units, this.config.categories);
+    const sorted = Reassembler.reassemble(units, labels, this.config.categories);
+
+    // Final safety assertion: reassembly is built from originals, so this
+    // should always pass; if it ever fails we refuse to return a result.
+    const validation = ContentValidator.validateIntegrity(content, sorted);
+    if (!validation.isValid) {
+      throw new Error(`Integrity check failed: ${validation.message}`);
+    }
+
+    const proof = Proof.generate(
+      content,
+      sorted,
+      units,
+      labels,
+      this.config.categories,
+      this.config.model
+    );
+
+    return {
+      sorted,
+      categoriesFound: validation.categoriesFound,
+      integrityValid: validation.isValid,
+      proof,
+    };
   }
 
   async sort(): Promise<SortResult> {
@@ -47,31 +93,17 @@ export class Sorter {
         };
       }
 
-      // Segment into units, classify each (LLM only returns labels), then
-      // rebuild the document from the original, untouched unit text.
-      const units = Segmenter.segment(content);
-      const labels = await this.classifier.classify(units, this.config.categories);
-      const sortedContent = Reassembler.reassemble(
-        units,
-        labels,
-        this.config.categories
-      );
-
-      // Final safety assertion: reassembly is built from originals, so this
-      // should always pass; if it ever fails we refuse to write.
-      const validation = ContentValidator.validateIntegrity(
-        content,
-        sortedContent
-      );
-
-      if (!validation.isValid) {
+      let result: ClassifyResult;
+      try {
+        result = await this.classifyText(content);
+      } catch (err) {
         return {
           success: false,
           originalPath: filePath,
           charCount: originalCharCount,
-          categoriesFound: validation.categoriesFound,
-          message: `Validation failed: ${validation.message}`,
-          error: validation.message,
+          categoriesFound: [],
+          message: "Validation failed",
+          error: err instanceof Error ? err.message : "Unknown error",
         };
       }
 
@@ -79,16 +111,17 @@ export class Sorter {
       let backupPath: string | undefined;
       if (!this.config.dryRun) {
         backupPath = this.backupFile(filePath, content);
-        this.writeFile(filePath, sortedContent);
+        this.writeFile(filePath, result.sorted);
       }
 
       return {
         success: true,
         originalPath: filePath,
         charCount: originalCharCount,
-        categoriesFound: validation.categoriesFound,
-        message: `Successfully sorted! Found ${validation.categoriesFound.length} categories.`,
+        categoriesFound: result.categoriesFound,
+        message: `Successfully sorted! Found ${result.categoriesFound.length} categories.`,
         backupPath,
+        proof: result.proof,
       };
     } catch (error) {
       return {

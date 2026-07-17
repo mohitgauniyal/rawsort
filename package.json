@@ -1,8 +1,18 @@
 {
   "name": "rawsort",
-  "version": "0.3.0",
-  "description": "A lightweight AI-powered tool to organize your scratchpad file with constrained categorization",
+  "version": "0.4.0",
+  "description": "Verifiable AI text classification — classify text into a fixed taxonomy with a portable, independently verifiable proof that the source was never altered.",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "bin": {
     "rawsort": "dist/cli/index.js"
   },
@@ -19,11 +29,15 @@
     "clean": "rm -rf dist node_modules"
   },
   "keywords": [
-    "scratchpad",
-    "organizer",
+    "text-classification",
+    "verifiable",
+    "audit",
+    "integrity",
+    "taxonomy",
     "ai",
     "gemini",
-    "categorization",
+    "llm",
+    "sdk",
     "rawsort"
   ],
   "author": "",
