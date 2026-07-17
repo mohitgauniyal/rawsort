@@ -4,6 +4,7 @@
  * rawsort - CLI entry point
  */
 
+import fs from "fs";
 import { Command } from "commander";
 import chalk from "chalk";
 import { ConfigManager } from "../core/config.js";
@@ -16,16 +17,17 @@ program
   .description(
     "AI-powered tool to organize your scratchpad file with constrained categorization"
   )
-  .version("0.3.0");
+  .version("0.4.0");
 
 program
   .command("sort [filePath]")
   .description("Sort your scratchpad file")
   .option("--dry-run", "Preview changes without writing to file")
   .option("--config <path>", "Path to config file")
+  .option("--proof <path>", "Write a verifiable audit proof to this JSON file")
   .action(async (filePath: string | undefined, options) => {
     try {
-      console.log(chalk.blue.bold("\n📝 rawsort v0.3.0\n"));
+      console.log(chalk.blue.bold("\n📝 rawsort v0.4.0\n"));
 
       // Load config
       const config = ConfigManager.loadConfig();
@@ -57,6 +59,14 @@ program
         );
         if (result.backupPath) {
           console.log(chalk.gray(`   Backup saved: ${result.backupPath}`));
+        }
+        if (options.proof && result.proof) {
+          fs.writeFileSync(options.proof, JSON.stringify(result.proof, null, 2), "utf-8");
+          console.log(
+            chalk.gray(
+              `   Proof written: ${options.proof} (integrity ${result.proof.integrity.preserved ? "verified ✓" : "FAILED"})`
+            )
+          );
         }
       } else {
         console.error(chalk.red(`❌ ${result.message}`));

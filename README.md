@@ -4,7 +4,35 @@
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-green)](https://nodejs.org/)
 [![npm version](https://img.shields.io/npm/v/rawsort)](https://www.npmjs.com/package/rawsort)
 
-A lightweight, AI-powered tool to organize your scratchpad file with constrained categorization using Google Gemini API.
+**Verifiable AI text classification.** Classify text into a fixed taxonomy and get a
+portable proof that the source was never altered — one that *anyone* can independently
+verify, without trusting the tool or the model.
+
+Any LLM can classify your text. rawsort is the layer that lets you **prove it didn't change a single character** — useful anywhere altering the source is unacceptable and auditable (support routing, records, regulated document workflows).
+
+## Use as an SDK
+
+```ts
+import { classifyText, verifyProof } from "rawsort";
+
+const { sorted, proof } = await classifyText(rawTickets, {
+  geminiApiKey: process.env.GEMINI_API_KEY!,
+  categories: ["Billing", "Bug Report", "Feature Request", "Account Help", "Outage"],
+});
+
+// Later, anyone with (input, output, proof) can confirm nothing was altered:
+const { valid } = verifyProof(rawTickets, sorted, proof);
+```
+
+- The model only returns category **labels** — the output is rebuilt from your original bytes, so corruption is structurally impossible.
+- `proof` is a self-contained `AuditProof` (sha256 per-unit hashes + digests). `verifyProof` recomputes everything and catches any tampering.
+- Bring your own model via `textModel`, or override the Gemini model via `model`.
+
+---
+
+## Scratchpad CLI
+
+rawsort also ships as a CLI — the reference implementation of the engine — that organizes a personal scratchpad file with constrained categorization using the Google Gemini API.
 
 ## The Problem
 
